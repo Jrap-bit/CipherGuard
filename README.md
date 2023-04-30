@@ -1,70 +1,65 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Cryptography Algorithms
+This is a React project showcasing 11 different cryptographic algorithms implemented in JavaScript. The following algorithms are implemented in this project:
 
-## Available Scripts
+### Caesar Cipher
+### Hill Cipher
+### Vernam Cipher
+### Vigenere Cipher
+### Playfair Cipher
+### RSA
+### AES
+### DES
+### Diffie-Hellman Key Exchange
+### ElGamal
+### Rail Fence Cipher
+### Algorithms Description
 
-In the project directory, you can run:
+## Caesar Cipher
+Caesar Cipher is a simple substitution cipher where each letter of the plaintext is replaced by a letter that is a fixed number of positions down the alphabet.
 
-### `npm start`
+## Hill Cipher
+Hill Cipher is a polygraphic substitution cipher that encrypts blocks of plaintext letters. The algorithm uses matrix multiplication to encrypt and decrypt the message.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Vernam Cipher
+Vernam Cipher is a stream cipher that uses a key that is as long as the message. The key is combined with the plaintext using the XOR operation to produce the ciphertext.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Vigenere Cipher
+Vigenere Cipher is a polyalphabetic substitution cipher where the plaintext is combined with a keyword. The keyword is repeated until it matches the length of the plaintext. The algorithm uses a Vigenere table to encrypt and decrypt the message.
 
-### `npm test`
+## Playfair Cipher
+Playfair Cipher is a polygraphic substitution cipher that encrypts pairs of plaintext letters. The algorithm uses a 5x5 matrix containing a keyword to encrypt and decrypt the message.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## RSA
+RSA is a public key cryptosystem that uses two keys: a public key and a private key. The public key is used for encryption and the private key is used for decryption.
 
-### `npm run build`
+## AES
+AES is a symmetric block cipher that encrypts and decrypts data in blocks of 128 bits. The algorithm uses a key that can be 128, 192, or 256 bits long.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## DES
+DES is a symmetric block cipher that encrypts and decrypts data in blocks of 64 bits. The algorithm uses a key that is 56 bits long.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Diffie-Hellman Key Exchange
+Diffie-Hellman Key Exchange is a method for securely exchanging cryptographic keys over a public channel. The algorithm allows two parties to agree on a shared secret without exchanging the secret key.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## ElGamal
+ElGamal is a public key cryptosystem that uses two keys: a public key and a private key. The public key is used for encryption and the private key is used for decryption.
 
-### `npm run eject`
+## Rail Fence Cipher
+Rail Fence Cipher is a transposition cipher that encrypts plaintext by writing it in a zig-zag pattern on a set number of rows. The ciphertext is obtained by reading the letters off in a diagonal pattern.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Installation and Usage
+Clone the repository
+Install dependencies by running npm install
+Run the project using npm start
+The app will open in your browser at http://localhost:3000
+Select the algorithm you want to use from the dropdown menu
+Enter the plaintext and the key (if required)
+Click on the encrypt or decrypt button to see the result.
+## Contributions
+Contributions are welcome. If you want to contribute to the project, please follow these steps:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Fork the repository
+Create a new branch with your changes
+Push your changes to your branch
+Create a pull request
