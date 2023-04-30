@@ -48,18 +48,21 @@ ElGamal is a public key cryptosystem that uses two keys: a public key and a priv
 ## Rail Fence Cipher
 Rail Fence Cipher is a transposition cipher that encrypts plaintext by writing it in a zig-zag pattern on a set number of rows. The ciphertext is obtained by reading the letters off in a diagonal pattern.
 
+
 ## Installation and Usage
-Clone the repository
-Install dependencies by running npm install
-Run the project using npm start
-The app will open in your browser at http://localhost:3000
-Select the algorithm you want to use from the dropdown menu
-Enter the plaintext and the key (if required)
-Click on the encrypt or decrypt button to see the result.
+1. Clone the repository
+2. Install dependencies by running npm install
+3. Run the project using npm start
+4. The app will open in your browser at http://localhost:3000
+5. Select the algorithm you want to use from the dropdown menu
+6. Enter the plaintext and the key (if required)
+7. Click on the encrypt or decrypt button to see the result.
+
+
 ## Contributions
 Contributions are welcome. If you want to contribute to the project, please follow these steps:
 
-Fork the repository
-Create a new branch with your changes
-Push your changes to your branch
-Create a pull request
+1. Fork the repository
+2. Create a new branch with your changes
+3. Push your changes to your branch
+4. Create a pull request
