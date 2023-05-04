@@ -158,12 +158,6 @@ export default function Caesar () {
             return;
         }
 
-        if(signInput.length !== verifyText.length){
-            swal("Error!", "Please enter a valid signature!", "error");
-            return;
-        }
-
-
         let mess_arr = conv_message_to_arr(verifyText);
         let sign_arr = signInput.split(", ")
         for (let i = 0; i < sign_arr.length; i++) {
