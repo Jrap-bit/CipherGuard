@@ -27,7 +27,7 @@ export default function Caesar () {
     const [verifyResult, setVerifyResult] = useState(false);
 
     const [bits, setBits] = useState(4);
-
+    const pow = (base, exponent) => base ** exponent;
 
     const handleChange = (event) => {
         setBits(event.target.value);
@@ -59,6 +59,7 @@ export default function Caesar () {
         return message_arr;
       }      
 
+
       function expmod( base, exp, mod ){
         if (exp == 0) return 1;
         if (exp % 2 == 0){
@@ -66,6 +67,17 @@ export default function Caesar () {
         }
         else {
           return (base * expmod( base, (exp - 1), mod)) % mod;
+        }
+      }
+
+
+    function expmod_bigInt( base, exp, mod ){
+        if (exp == 0n) return 1n;
+        if (exp % 2n == 0n){
+          return pow(expmod_bigInt( base, (exp / 2n), mod), 2n) % mod;
+        }
+        else {
+          return (base * expmod_bigInt( base, (exp - 1n), mod)) % mod;
         }
       }
       
@@ -88,14 +100,14 @@ export default function Caesar () {
 
     function verify(message, gen, prime, public_key, signArr, index) {
         let [s1, s2] = signArr[index];
-        [s1, s2] = [parseInt(s1), parseInt(s2)];
-        const v1 = expmod(gen, message, prime);
-        const temp1 = Math.pow(public_key, s1);
-        const temp2 = Math.pow(s1, s2);
+        [s1, s2] = [BigInt(s1), BigInt(s2)];
+        const v1 = expmod_bigInt(BigInt(gen), BigInt(message), BigInt(prime));
+        const temp1 = pow(BigInt(public_key), BigInt(s1));
+        const temp2 = pow(BigInt(s1), BigInt(s2));
         console.log(temp1);
         console.log(temp2);
-        const v2 = modulus(temp1 * temp2, prime);
-        return [v1, v2];
+        const v2 = modulus(BigInt(temp1) * BigInt(temp2), BigInt(prime));
+        return [v1.toString(), v2.toString()];
       }
     
     
