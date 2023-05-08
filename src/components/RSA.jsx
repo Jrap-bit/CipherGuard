@@ -10,11 +10,11 @@ export default function Caesar () {
     const [text, setText] = useState("");
     const [bits, setBits] = useState("");
     const [e, sete] = useState(65537);
-    const [d, setD] = useState(0);
-    const [n, setN] = useState(0);
-    const [p, setP] = useState(0);
-    const [q, setQ] = useState(0);
-    const [phi, setPhi] = useState(0)
+    const [d, setD] = useState(0n);
+    const [n, setN] = useState(0n);
+    const [p, setP] = useState(0n);
+    const [q, setQ] = useState(0n);
+    const [phi, setPhi] = useState(0n)
     const [output, setOutput] = useState([]);
     const [result, setResult] = useState(false);
 
@@ -45,17 +45,17 @@ export default function Caesar () {
         let q = primeFunc.choosePrime(bits);
         setP(p);
         setQ(q);
-        p = parseInt(p);
-        q = parseInt(q);
+        p = BigInt(p);
+        q = BigInt(q);
         let n = p * q;
-        setN(n);
-        let phi = (p - 1) * (q - 1);
-        setPhi(phi);
-        let d = calc_d(e,phi);
-        setD(d);
+        setN(n.toString());
+        let phi = (p - 1n) * (q - 1n);
+        setPhi(phi.toString());
+        let d = calc_d(BigInt(e),phi);
+        setD(d.toString());
         for (let i=0;i<text.length;i++){
-            let char = parseInt(text.charCodeAt(i) - 65);
-            let encrypted = expmod(char,e,n);
+            let char = BigInt(text.charCodeAt(i) - 65);
+            let encrypted = expmod(char,BigInt(e),BigInt(n));
             ciphertext.push(encrypted);
         }
         setOutput(ciphertext);
@@ -67,12 +67,12 @@ export default function Caesar () {
     }
 
     const calc_d = (e,phi) => {
-        let t1 = 0;
-        let t2 = 1;
+        let t1 = 0n;
+        let t2 = 1n;
         let r1 = phi;
         let r2 = e;
-        while (r2 > 0){
-            let q = Math.floor(r1/r2);
+        while (r2 > 0n){
+            let q = r1/r2
             let r = modulus(r1,r2);
             r1 = r2;
             r2 = r;
@@ -80,18 +80,20 @@ export default function Caesar () {
             t1 = t2;
             t2 = t;
         }
-        if (r1 == 1){
+        if (r1 == 1n){
             return modulus(t1,phi);
         }
     }
 
+    const pow = (base, exponent) => base ** exponent;
+
     function expmod( base, exp, mod ){
-        if (exp == 0) return 1;
-        if (exp % 2 == 0){
-          return Math.pow( expmod( base, (exp / 2), mod), 2) % mod;
+        if (exp == 0n) return 1n;
+        if (exp % 2n == 0n){
+          return pow(expmod( base, (exp / 2n), mod), 2n) % mod;
         }
         else {
-          return (base * expmod( base, (exp - 1), mod)) % mod;
+          return (base * expmod( base, (exp - 1n), mod)) % mod;
         }
       }
 
@@ -213,7 +215,7 @@ export default function Caesar () {
         { result &&
         <div className="pb-5 flex-column d-flex justify-content-center text-center">
 
-        <Grid container spacing={2} columns={16}>
+        {/* <Grid container spacing={2} columns={16}>
         <Grid item xs={8}>
         <CardHeader title="First Prime" />
         <h5 className="h5 font-weight-bold">{p}</h5>
@@ -222,9 +224,21 @@ export default function Caesar () {
         <CardHeader title="Second Prime" />
         <h5 className="h5 font-weight-bold">{q}</h5>
         </Grid>
-        </Grid>
+        </Grid> */}
 
-        <Grid container spacing={2} columns={16}>
+
+        <div className="d-flex flex-column flex-wrap justify-content-center">
+        <CardHeader title="First Prime" />
+        <h5 className="h5 font-weight-bold">{p}</h5>
+        </div>
+
+        <div className="d-flex flex-column flex-wrap justify-content-center">
+        <CardHeader title="Second Prime" />
+        <h5 className="h5 font-weight-bold">{q}</h5>
+        </div>
+
+
+        {/* <Grid container spacing={2} columns={16}>
         <Grid item xs={8}>
         <CardHeader title="n (p*q)" />
         <h5 className="h5 font-weight-bold">{n}</h5>
@@ -233,9 +247,19 @@ export default function Caesar () {
         <CardHeader title="phi [(p-1) * (q-1)]" />
         <h5 className="h5 font-weight-bold">{phi}</h5>
         </Grid>
-        </Grid>
+        </Grid> */}
 
-        <Grid container spacing={2} columns={16}>
+        <CardHeader title="n (p*q)" />
+        <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+        <h5 style={{'word-break': 'break-all'}} className="h5 font-weight-bold">{n}</h5>
+        </div>
+
+        <CardHeader title="phi [(p-1) * (q-1)]" />
+        <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+        <h5 style={{'word-break': 'break-all'}} className="h5 font-weight-bold">{phi}</h5>
+        </div>
+
+        {/* <Grid container spacing={2} columns={16}>
         <Grid item xs={8}>
         <CardHeader title="Public Key" />
         <h5 className="h5 font-weight-bold">{e}</h5>
@@ -244,8 +268,18 @@ export default function Caesar () {
         <CardHeader title="Private Key" />
         <h5 className="h5 font-weight-bold">{d}</h5>
         </Grid>
-        </Grid>
+        </Grid> */}
 
+<CardHeader title="Public Key" />
+        <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+        <h5 style={{'word-break': 'break-all'}} className="h5 font-weight-bold">{e}</h5>
+        </div>
+
+        <CardHeader title="Private Key" />
+        <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+        <h5 style={{'word-break': 'break-all'}} className="h5 font-weight-bold">{d}</h5>
+        </div>
+        
 
         <CardHeader title="Final Message Encryption" />
         <div>
@@ -253,7 +287,7 @@ export default function Caesar () {
         {output.map((item, index) => {
             return (
                 <div key={index}>
-                    <h5>{item}</h5>
+                    <h5 className="mx-5" style={{'word-break': 'break-all'}} >{item.toString()}</h5>
                 </div>
             )
         })
