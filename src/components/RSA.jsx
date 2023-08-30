@@ -1,308 +1,271 @@
-import {Card,Grow,Fade, TextField,CardHeader,Input,Grid,Button} from "@mui/material";
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import React, {useState} from 'react';
-import swal from 'sweetalert';
-let primeFunc = require("./utils/prime");
-const BN = require('bn.js');
+import {
+  Card,
+  Grow,
+  Fade,
+  TextField,
+  CardHeader,
+  Input,
+  Grid,
+  Button,
+} from "@mui/material";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import React, { useState } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
+import swal from "sweetalert";
+import axios from "axios";
 
-export default function Caesar () {
-    const [text, setText] = useState("");
-    const [bits, setBits] = useState("");
-    const [e, sete] = useState(65537);
-    const [d, setD] = useState(0n);
-    const [n, setN] = useState(0n);
-    const [p, setP] = useState(0n);
-    const [q, setQ] = useState(0n);
-    const [phi, setPhi] = useState(0n)
-    const [output, setOutput] = useState([]);
-    const [result, setResult] = useState(false);
+axios.defaults.baseURL = "http://localhost:8000";
 
-    const handleChange = (event) => {
-        setBits(event.target.value);
-      };    
-    
-    const encrypt = () => {
-        if (text == ""){
-          swal({
-            title: "Error",
-            text: "Please enter a message to encrypt",
-            icon: "error",
-          });
-            return;
-        }
-        if (bits == ""){
-          swal({
-            title: "Error",
-            text: "Please enter a bit length",
-            icon: "error",
-          });
-            return;
-        }
+export default function Caesar() {
+  const [text, setText] = useState("");
+  const [bits, setBits] = useState("");
+  const [e, sete] = useState(65537);
+  const [d, setD] = useState(0n);
+  const [n, setN] = useState(0n);
+  const [p, setP] = useState(0n);
+  const [q, setQ] = useState(0n);
+  const [phi, setPhi] = useState(0n);
+  const [output, setOutput] = useState([]);
+  const [decrypted, setDecrypted] = useState("");
+  const [result, setResult] = useState(false);
+  const [isShow, setisShow] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-        let ciphertext = []
-        let p = primeFunc.choosePrime(bits);
-        let q = primeFunc.choosePrime(bits);
-        setP(p);
-        setQ(q);
-        p = BigInt(p);
-        q = BigInt(q);
-        let n = p * q;
-        setN(n.toString());
-        let phi = (p - 1n) * (q - 1n);
-        setPhi(phi.toString());
-        let d = calc_d(BigInt(e),phi);
-        setD(d.toString());
-        for (let i=0;i<text.length;i++){
-            let char = BigInt(text.charCodeAt(i) - 65);
-            let encrypted = expmod(char,BigInt(e),BigInt(n));
-            ciphertext.push(encrypted);
-        }
-        setOutput(ciphertext);
+
+  const handleShow = (event) => {
+    setisShow(!isShow);
+  };
+
+  const handleChange = (event) => {
+    setBits(event.target.value);
+  };
+
+  const encrypt = () => {
+    if (text == "") {
+      swal({
+        title: "Error",
+        text: "Please enter a message to encrypt",
+        icon: "error",
+      });
+      return;
+    }
+    if (bits == "") {
+      swal({
+        title: "Error",
+        text: "Please enter a bit length",
+        icon: "error",
+      });
+      return;
+    }
+    setLoading(true); 
+    axios
+      .post("/encrypt/RSA/", { input_str: text, size: bits, public_key: e })
+      .then((response) => {
+        console.log(response.data);
+        setN(response.data.n);
+        setPhi(response.data.phi);
+        setP(response.data.p);
+        setQ(response.data.q);
+        setD(response.data.d);
+        setOutput(response.data.ciphertext);
+        setDecrypted(response.data.plaintext);
         setResult(true);
-    }
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setLoading(false); // Set loading to false when request finishes
+      });
+  };
 
-    const modulus = function (n, m) {
-        return ((n % m) + m) % m;
-    }
-
-    const calc_d = (e,phi) => {
-        let t1 = 0n;
-        let t2 = 1n;
-        let r1 = phi;
-        let r2 = e;
-        while (r2 > 0n){
-            let q = r1/r2
-            let r = modulus(r1,r2);
-            r1 = r2;
-            r2 = r;
-            let t = t1 - q * t2;
-            t1 = t2;
-            t2 = t;
-        }
-        if (r1 == 1n){
-            return modulus(t1,phi);
-        }
-    }
-
-    const pow = (base, exponent) => base ** exponent;
-
-    function expmod( base, exp, mod ){
-        if (exp == 0n) return 1n;
-        if (exp % 2n == 0n){
-          return pow(expmod( base, (exp / 2n), mod), 2n) % mod;
-        }
-        else {
-          return (base * expmod( base, (exp - 1n), mod)) % mod;
-        }
-      }
-
-      // Generating Prime Numbers - Does not work in JS apparently
-
-    // const rabin_miller = (prime_cand) => {
-    //     let even = prime_cand - 1;
-    //     let num_of_2 = 0;
-    //     while (even%2 == 0){
-    //         even = even/2;
-    //         num_of_2 += 1;
-    //     }
-    //     for (let i=0;i<10;i++){
-    //         let a = Math.floor(Math.random() * (prime_cand - 2)) + 2;
-    //         let x = expmod(a,even,prime_cand);
-    //         if (x == 1){
-    //             return true;
-    //         }
-    //         for (let j=0;j<num_of_2 - 1;j++){
-    //             x = expmod(a,Math.pow(2,j) * even,prime_cand);
-    //             if (x == 1){
-    //                 return true;
-    //             }
-    //             if (x == prime_cand - 1){
-    //                 return true;
-    //             }
-    //         }
-    //         return false;
-    //         }
-    //     }
-
-    // const prime_gen = (n) => {
-    //     let first_primes_list = [2, 3, 5, 11, 7, 13, 17, 19, 23, 29,
-    //         31, 37, 41, 43, 47, 53, 59, 61, 67,
-    //         71, 73, 79, 83, 89, 97, 101, 103,
-    //         107, 109, 113, 127, 131, 137, 139,
-    //         149, 151, 157, 163, 167, 173, 179,
-    //         181, 191, 193, 197, 199, 211, 223,
-    //         227, 229, 233, 239, 241, 251, 257,
-    //         263, 269, 271, 277, 281, 283, 293,
-    //         307, 311, 313, 317, 331, 337, 347, 349]
-        
-    //     while (true){
-    //         const n_bit_prime = Math.floor(Math.random() * (2 ** n - 2 ** (n - 1) - 1)) + 2 ** (n - 1) + 1;
-    //         for (let i=0;i<first_primes_list.length;i++){
-    //             if (n_bit_prime == first_primes_list[i]){
-    //                 return n_bit_prime;
-    //             }
-    //             if (n_bit_prime % first_primes_list[i] == 0){
-    //                 break;
-    //             }
-    //             else{
-    //                 return n_bit_prime;
-    //             }
-    //         }
-    //     }
-    // }
-    
-    // const getPrime = () => {
-    //     let n = bits;
-    //     let choices = [2,3]
-    //     if (n == 2){
-    //         let index = Math.floor(Math.random() * choices.length);
-    //         return choices[index];
-    //     }
-    //     while (true){
-    //         let prime_candidate = prime_gen(n);
-    //         if (!rabin_miller(prime_candidate)){
-    //             continue;
-    //         }
-    //         else{
-    //             return prime_candidate;
-    //         }
-    //     }
-    // }
-
-    return (
+  return (
+    <div>
         <Grow in>
-        <div className="container"> 
-        <Card>
-        <h1 className="mt-4 h1 d-flex justify-content-center">RSA - Rivest Shamir Adleman</h1>
+        <div className="container">
+          <Card>
+            <h1 className="mt-4 h1 d-flex justify-content-center">
+              RSA - Rivest Shamir Adleman
+            </h1>
 
-        <div className="p-5 d-flex justify-content-center">
-        <TextField className="" onChange={(event) => {
-                  setText(event.target.value);
-                }} fullWidth label="Enter The Text" id="fullWidth" />
-        <Select
-          labelId="demo-simple-select-helper-label"
-          id="demo-simple-select-helper"
-          value={bits}
-          label="Bits"
-          className="mx-3"
-          onChange={handleChange}
-        >
-          <MenuItem value="">
-            <em>None</em>
-          </MenuItem>
-          <MenuItem value={4}>4 Bits</MenuItem>
-          <MenuItem value={8}>8 Bits</MenuItem>
-          <MenuItem value={16}>16 Bits</MenuItem>
-          <MenuItem value={32}>32 Bits</MenuItem>
-          <MenuItem value={64}>64 Bits</MenuItem>
-          <MenuItem value={128}>128 Bits</MenuItem>
-          <MenuItem value={256}>256 Bits</MenuItem>
-        </Select>
-        <TextField className="" onChange={(event) => {
-                  sete(event.target.value);
-                }} fullWidth label="Enter The Value of e (Default: 65537)" id="fullWidth" type="number"/>
-        </div>
+          <div className="p-5 d-flex justify-content-center">
+            <TextField
+              className=""
+              onChange={(event) => {
+                setText(event.target.value);
+              }}
+              fullWidth
+              label="Enter The Text"
+              id="fullWidth"
+            />
+            <Select
+              labelId="demo-simple-select-helper-label"
+              id="demo-simple-select-helper"
+              value={bits}
+              label="Bits"
+              className="mx-3"
+              onChange={handleChange}
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              <MenuItem value={4}>4 Bits</MenuItem>
+              <MenuItem value={8}>8 Bits</MenuItem>
+              <MenuItem value={16}>16 Bits</MenuItem>
+              <MenuItem value={32}>32 Bits</MenuItem>
+              <MenuItem value={64}>64 Bits</MenuItem>
+              <MenuItem value={128}>128 Bits</MenuItem>
+              <MenuItem value={256}>256 Bits</MenuItem>
+              <MenuItem value={512}>512 Bits</MenuItem>
+              <MenuItem value={1024}>1024 Bits</MenuItem>
+              <MenuItem value={2048}>2048 Bits</MenuItem>
+              <MenuItem value={4096}>4096 Bits</MenuItem>
+            </Select>
+            <TextField
+              className=""
+              onChange={(event) => {
+                sete(event.target.value);
+              }}
+              fullWidth
+              label="Enter The Value of e (Default: 65537)"
+              id="fullWidth"
+              type="number"
+            />
+          </div>
 
+          <div className="pb-5 d-flex justify-content-center">
+            <Button
+              className="p-3 mx-2"
+              variant="contained"
+              onClick={encrypt}
+              color="success"
+            >
+              Encrypt
+            </Button>
+          </div>
+          <div className="pb-4 flex-column d-flex justify-content-center text-center">
+            <CardHeader title="Output" />
+          </div>
 
-        <div className="pb-5 d-flex justify-content-center">
-        <Button className="p-3 mx-2" variant="contained" onClick={encrypt} color="success">Encrypt</Button>
-        </div>
-        <div className="pb-4 flex-column d-flex justify-content-center text-center">
-        <CardHeader title="Output" />
-        </div>
-
-        { result &&
-        <div className="pb-5 flex-column d-flex justify-content-center text-center">
-
-        {/* <Grid container spacing={2} columns={16}>
-        <Grid item xs={8}>
-        <CardHeader title="First Prime" />
-        <h5 className="h5 font-weight-bold">{p}</h5>
-        </Grid>
-        <Grid item xs={8}>
-        <CardHeader title="Second Prime" />
-        <h5 className="h5 font-weight-bold">{q}</h5>
-        </Grid>
-        </Grid> */}
-
-
-        <div className="d-flex flex-column flex-wrap justify-content-center">
-        <CardHeader title="First Prime" />
-        <h5 className="h5 font-weight-bold">{p}</h5>
-        </div>
-
-        <div className="d-flex flex-column flex-wrap justify-content-center">
-        <CardHeader title="Second Prime" />
-        <h5 className="h5 font-weight-bold">{q}</h5>
-        </div>
-
-
-        {/* <Grid container spacing={2} columns={16}>
-        <Grid item xs={8}>
-        <CardHeader title="n (p*q)" />
-        <h5 className="h5 font-weight-bold">{n}</h5>
-        </Grid>
-        <Grid item xs={8}>
-        <CardHeader title="phi [(p-1) * (q-1)]" />
-        <h5 className="h5 font-weight-bold">{phi}</h5>
-        </Grid>
-        </Grid> */}
-
-        <CardHeader title="n (p*q)" />
-        <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
-        <h5 style={{'word-break': 'break-all'}} className="h5 font-weight-bold">{n}</h5>
-        </div>
-
-        <CardHeader title="phi [(p-1) * (q-1)]" />
-        <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
-        <h5 style={{'word-break': 'break-all'}} className="h5 font-weight-bold">{phi}</h5>
-        </div>
-
-        {/* <Grid container spacing={2} columns={16}>
-        <Grid item xs={8}>
-        <CardHeader title="Public Key" />
-        <h5 className="h5 font-weight-bold">{e}</h5>
-        </Grid>
-        <Grid item xs={8}>
-        <CardHeader title="Private Key" />
-        <h5 className="h5 font-weight-bold">{d}</h5>
-        </Grid>
-        </Grid> */}
-
-<CardHeader title="Public Key" />
-        <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
-        <h5 style={{'word-break': 'break-all'}} className="h5 font-weight-bold">{e}</h5>
-        </div>
-
-        <CardHeader title="Private Key" />
-        <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
-        <h5 style={{'word-break': 'break-all'}} className="h5 font-weight-bold">{d}</h5>
-        </div>
-        
-
-        <CardHeader title="Final Message Encryption" />
-        <div>
-
-        {output.map((item, index) => {
-            return (
-                <div key={index}>
-                    <h5 className="mx-5" style={{'word-break': 'break-all'}} >{item.toString()}</h5>
+          {loading ? (
+              <div className="d-flex flex-column align-items-center mt-4">
+                <CircularProgress />
+                <br />
+                <div className="mt-2 mb-4 pb-4">
+                  {bits == "1024" && (
+                    <p>Encrypting with 1024 Bits - 4 seconds average loading time</p>
+                  )}
+                  {bits == "2048" && (
+                    <p>Encrypting with 2048 Bits - 50 seconds average loading time</p>
+                  )}
+                  {bits == "4096" && (
+                    <p>Encrypting with 4096 Bits - 8.5 minutes average loading time</p>
+                  )}
                 </div>
-            )
-        })
-    }
-        </div>
-        </div>}
-        { bits >= 32 && 
-        
-        <div className="pb-3 flex-column d-flex justify-content-center text-center">
-          <p className=" font-size-small font-weight-light">*As Javascript Can't Handle These Many Bits, The Results May Be Inaccurate*</p>
-        </div>
-  } 
-        </Card>
-        </div>
-        </Grow>
-    )
-    }
+              </div>
+              
+              
+            ) : (
+              result && (
+            <div className="pb-5 flex-column d-flex justify-content-center text-center">
+              <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+                <CardHeader title="First Prime" />
+                <h5
+                  style={{ "word-break": "break-all" }}
+                  className="h5 font-weight-bold"
+                >
+                  {p}
+                </h5>
+              </div>
 
+              <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+                <CardHeader title="Second Prime" />
+                <h5
+                  style={{ "word-break": "break-all" }}
+                  className="h5 font-weight-bold"
+                >
+                  {q}
+                </h5>
+              </div>
+
+              <CardHeader title="n (p*q)" />
+              <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+                <h5
+                  style={{ "word-break": "break-all" }}
+                  className="h5 font-weight-bold"
+                >
+                  {n}
+                </h5>
+              </div>
+
+              <CardHeader title="phi [(p-1) * (q-1)]" />
+              <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+                <h5
+                  style={{ "word-break": "break-all" }}
+                  className="h5 font-weight-bold"
+                >
+                  {phi}
+                </h5>
+              </div>
+
+              <CardHeader title="Public Key" />
+              <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+                <h5
+                  style={{ "word-break": "break-all" }}
+                  className="h5 font-weight-bold"
+                >
+                  {e}
+                </h5>
+              </div>
+
+              <CardHeader title="Private Key" />
+              <div className="mx-5 d-flex flex-column flex-wrap justify-content-center">
+                <h5
+                  style={{ "word-break": "break-all" }}
+                  className="h5 font-weight-bold"
+                >
+                  {d}
+                </h5>
+              </div>
+
+              <CardHeader title="Final Message Encryption" />
+              <div>
+                {output.map((item, index) => {
+                  return (
+                    <div key={index}>
+                      <h5
+                        className="mx-5"
+                        style={{ "word-break": "break-all" }}
+                      >
+                        {item.toString()}
+                      </h5>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="pb-5 pt-4 d-flex justify-content-center">
+                  <Button
+                    className="p-3 mx-2"
+                    variant="contained"
+                    onClick={handleShow}
+                    color="success"
+                  >
+                    {isShow ? "Hide Decrypted Value" : "Show Decrypted Value"}
+                  </Button>
+                </div>
+                {isShow && (
+                  <div className="pb-1 flex-column d-flex justify-content-center text-center">
+                    <CardHeader title="Decrypted Message" />
+                    <h5 className="h5 font-weight-bold">{decrypted}</h5>
+                  </div>
+                )}
+              </div>
+               )
+               )}
+             </Card>
+           </div>
+         </Grow>
+       </div>
+     );
+   }
