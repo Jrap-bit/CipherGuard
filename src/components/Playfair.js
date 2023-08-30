@@ -1,6 +1,9 @@
 import {Card,Grow, TextField,CardHeader, Button} from "@mui/material";
 import React, {useState} from 'react';
 import swal from 'sweetalert';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://localhost:8000'
 
 export default function Playfair () {
     const [text, setText] = useState("");
@@ -8,72 +11,6 @@ export default function Playfair () {
     const [result, setResult] = useState("");
     const [finalMat, setFinalMat] = useState([]);
     const [plaintext, setPlaintext] = useState("");
-
-    const matrix_creation = (enc_key) => {
-        enc_key = enc_key.toUpperCase();
-        let matrix = Array(5).fill().map(()=>Array(5).fill())
-        let letters_used = [];
-        let letters= "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        for (let i=0;i<enc_key.length;i++) {
-            if (!letters_used.includes(enc_key[i])) {
-                letters_used.push(enc_key[i]);
-            }
-        }
-        for (let i=0;i<letters.length;i++) {
-            if (!letters_used.includes(letters[i])) {
-                if (letters[i] === "J") {
-                    continue;
-                }
-                else{
-                letters_used.push(letters[i]);
-                }
-            }
-        }
-        let k = 0;
-        for (let i=0;i<5;i++) {
-            for (let j=0;j<5;j++) {
-                matrix[i][j] = letters_used[k];
-                k++;
-            }
-        }
-        return matrix;
-    }
-
-    const letter_pairs = (text) => {
-        let pairs = [];
-        text = text.toUpperCase();
-        text = text.replace(/ /g, "");
-        text = text.replace(/J/g, "I");
-
-        for (let i=0;i<text.length;i+=1) {
-            if (text[i-1] === text[i]) {
-                text = text.slice(0,i) + "X" + text.slice(i);
-            }
-        }
-        if (text.length % 2 !== 0) {
-            text += "X";
-        }
-        for (let i=0;i<text.length;i+=2) {
-            pairs.push(text.slice(i,i+2));
-        }
-        return pairs;
-    }
-
-    const find_location = (matrix, letter = "") => {
-        let loc = [];
-        for (let i=0;i<5;i++) {
-            for (let j=0;j<5;j++) {
-                if (matrix[i][j] === letter) {
-                    loc.push(i);
-                    loc.push(j);
-
-                    return loc;
-                }
-            }
-        }
-    }
-
-
     const encrypt = () => {
         if (key === "") {
             swal({
@@ -128,36 +65,15 @@ export default function Playfair () {
               });
             return;
         }
-
-
-        let mat = matrix_creation(key);
-        let pairs = letter_pairs(text);
-        let result = "";
-        let loc1 = []
-        let loc2 = []
-        for (let i=0;i<pairs.length;i++) {
-            loc1 = find_location(mat, pairs?.[i]?.[0]);
-            loc2 = find_location(mat, pairs?.[i]?.[1]);
-            if (loc1[0] === loc2[0]) {
-                result += mat[loc1[0]][modulus((loc1[1]+1),5)];
-                result += mat[loc2[0]][modulus((loc2[1]+1),5)];
-            }
-            else if (loc1[1] === loc2[1]) {
-                result += mat[modulus((loc1[0]+1),5)][loc1[1]];
-                result += mat[modulus((loc2[0]+1),5)][loc2[1]];
-            }
-            else {
-                result += mat[loc1[0]][loc2[1]];
-                result += mat[loc2[0]][loc1[1]];
-            }
-        }
-        setResult(result);
-        setFinalMat(mat);
+        axios.post('/encrypt/playfair/', { key: key, plaintext: text })
+        .then(response => {
+            setResult(response.data.ciphertext);
+            setFinalMat(response.data.matrix); 
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     };
-
-    const modulus = function (n, m) {
-        return ((n % m) + m) % m;
-    }
 
     const decrypt = () => {
         if (key === "") {
@@ -213,30 +129,15 @@ export default function Playfair () {
               });
             return;
         }
+        axios.post('/decrypt/playfair/', { key: key, ciphertext: text })
+        .then(response => {
+            setResult(response.data.decrypted_text);
+            setFinalMat(response.data.matrix);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 
-        let mat = matrix_creation(key);
-        let pairs = letter_pairs(text);
-        let result = "";
-        let loc1 = []
-        let loc2 = []
-        for (let i=0;i<pairs.length;i++) {
-            loc1 = find_location(mat, pairs?.[i]?.[0]);
-            loc2 = find_location(mat, pairs?.[i]?.[1]);
-            if (loc1[0] === loc2[0]) {
-                result += mat[loc1[0]][modulus((loc1[1]-1),5)];
-                result += mat[loc2[0]][modulus((loc2[1]-1),5)];
-            }
-            else if (loc1[1] === loc2[1]) {
-                result += mat[modulus((loc1[0]-1),5)][loc1[1]];
-                result += mat[modulus((loc2[0]-1),5)][loc2[1]];
-            }
-            else {
-                result += mat[loc1[0]][loc2[1]];
-                result += mat[loc2[0]][loc1[1]];
-            }
-        }
-        setResult(result);
-        setFinalMat(mat);
     };
 
     return (
