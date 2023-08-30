@@ -1,11 +1,16 @@
 import {Card,Grow,TextField,CardHeader,Input, Button} from "@mui/material";
 import React, {useState} from 'react';
 import swal from 'sweetalert';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://localhost:8000'
 
 export default function Caesar () {
     const [text, setText] = useState("");
     const [shift, setShift] = useState(0);
     const [outputList, setOutputList] = useState([]);
+
+    
 
     const encrypt = () => {
         if (text.length == 0) {
@@ -24,22 +29,13 @@ export default function Caesar () {
               });
             return;
         }
-
-        let result = "";
-        for (let i = 0; i < text.length; i++) {
-            let c = text.charCodeAt(i);
-            if (c >= 65 && c <= 90) {
-                var shifted_val = c + shift - 65
-                console.log(shifted_val)
-                result += String.fromCharCode(((parseInt(c) + parseInt(shift) - 65) % 26) + 65);
-            } else if (c >= 97 && c <= 122) {
-                result += String.fromCharCode(((parseInt(c) + parseInt(shift) - 97) % 26) + 97);
-            } else {
-                result += text.charAt(i);
-            }
-        }
-
-        setOutputList([result]);
+        axios.post('/encrypt/caesar/', { input_str: text, shift: shift })
+        .then(response => {
+            setOutputList([response.data.encrypted_text]);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     };
 
     const decrypt = () => {
@@ -59,21 +55,13 @@ export default function Caesar () {
               });
             return;
         }
-
-        let result = "";
-        for (let i = 0; i < text.length; i++) {
-            let c = text.charCodeAt(i);
-            if (c >= 65 && c <= 90) {
-                result += String.fromCharCode(((parseInt(c) - 65 - parseInt(shift)) % 26 ) + 65);
-            } else if (c >= 97 && c <= 122) {
-                result += String.fromCharCode(((parseInt(c) - 97 - parseInt(shift)) % 26 ) + 97);
-            } else {
-                result += text.charAt(i);
-            }
-        }
-
-        setOutputList([result]);
-    
+        axios.post('/decrypt/caesar/', { input_str: text, shift: shift })
+        .then(response => {
+            setOutputList([response.data.decrypted_text]);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     };
 
     const bruteforce = () => {
@@ -85,23 +73,14 @@ export default function Caesar () {
               });
             return;
         }
-        var final = []
-        for (let j = 1; j <= 26; j++) {
-            let result = "";
-            for (let i = 0; i < text.length; i++) {
-                let c = text.charCodeAt(i);
-                if (c >= 65 && c <= 90) {
-                    result += String.fromCharCode((c - 65 - j + 26) % 26 + 65);
-                } else if (c >= 97 && c <= 122) {
-                    result += String.fromCharCode((c - 97 - j + 26) % 26 + 97);
-                } else {
-                    result += text.charAt(i);
-                }
-            }
-            final.push(result)
-        }
+        axios.post('/decrypt/caesar/bruteforce/', { input_str: text })
+        .then(response => {
+            setOutputList(response.data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 
-        setOutputList(final);
     };
 
     return (
