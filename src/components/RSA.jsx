@@ -32,14 +32,26 @@ export default function Caesar() {
   const [isShow, setisShow] = useState(false);
   const [loading, setLoading] = useState(false);
 
-
-  const handleShow = (event) => {
-    setisShow(!isShow);
-  };
-
   const handleChange = (event) => {
     setBits(event.target.value);
   };
+
+  const decrypt = () => {
+    setLoading(true); 
+    axios
+      .post("/decrypt/RSA/", { ciphertext: output, d: d, n: n })
+      .then((response) => {
+        setDecrypted(response.data);
+        setResult(true);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setLoading(false);
+        setisShow(!isShow); // Set loading to false when request finishes
+      });
+  }
 
   const encrypt = () => {
     if (text == "") {
@@ -62,14 +74,12 @@ export default function Caesar() {
     axios
       .post("/encrypt/RSA/", { input_str: text, size: bits, public_key: e })
       .then((response) => {
-        console.log(response.data);
         setN(response.data.n);
         setPhi(response.data.phi);
         setP(response.data.p);
         setQ(response.data.q);
         setD(response.data.d);
         setOutput(response.data.ciphertext);
-        setDecrypted(response.data.plaintext);
         setResult(true);
       })
       .catch((error) => {
@@ -144,9 +154,26 @@ export default function Caesar() {
               Encrypt
             </Button>
           </div>
-          <div className="pb-4 flex-column d-flex justify-content-center text-center">
+          <div className="pb-2 flex-column d-flex justify-content-center text-center">
             <CardHeader title="Output" />
           </div>
+          <div className="pb-2 pt-4 d-flex justify-content-center">
+                  <Button
+                    className="p-3 mx-2"
+                    variant="outlined"
+                    onClick={decrypt}
+                    color={"success"}
+                    disabled={!result}
+                  >
+                    {isShow ? "Hide Text" : "Decrypt and Show Text"}
+                  </Button>
+                </div>
+                {isShow && (
+                  <div className="pb-1 flex-column d-flex justify-content-center text-center">
+                    <CardHeader title="Decrypted Message" />
+                    <h5 className="h5 font-weight-bold">{decrypted}</h5>
+                  </div>
+                )}
 
           {loading ? (
               <div className="d-flex flex-column align-items-center mt-4">
@@ -244,22 +271,6 @@ export default function Caesar() {
                   );
                 })}
               </div>
-              <div className="pb-5 pt-4 d-flex justify-content-center">
-                  <Button
-                    className="p-3 mx-2"
-                    variant="contained"
-                    onClick={handleShow}
-                    color="success"
-                  >
-                    {isShow ? "Hide Decrypted Value" : "Show Decrypted Value"}
-                  </Button>
-                </div>
-                {isShow && (
-                  <div className="pb-1 flex-column d-flex justify-content-center text-center">
-                    <CardHeader title="Decrypted Message" />
-                    <h5 className="h5 font-weight-bold">{decrypted}</h5>
-                  </div>
-                )}
               </div>
                )
                )}
