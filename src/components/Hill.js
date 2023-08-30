@@ -8,87 +8,67 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import swal from 'sweetalert';
-let math = require("mathjs");
-let string = require("./utils/string");
+import MenuItem from '@mui/material/MenuItem';
+import { Typography } from '@mui/material';
+import Select from '@mui/material/Select';
+import axios from 'axios';
+axios.defaults.baseURL = 'http://localhost:8000'
 
 export default function Caesar() {
   const [text, setText] = useState("");
+  const [decText, setdecText] = useState("");
   const [output, setOutput] = useState("");
-  const [keyMatrix, setKeyMatrix] = useState([
-    [6, 24, 1],
-    [13, 16, 10],
-    [20, 17, 15],
-  ]);
+  const [matrixSize, setMatrixSize] = useState(3);
+  const [encryptMatrix, setencryptMatrix] = useState([]);
+  const [decmatrixSize, setdecMatrixSize] = useState(3);
+  const [decryptMatrix, setdecryptMatrix] = useState([]);
+  const [decOutput, setDecOutput] = useState([]); // [plaintext, key
+  const [isValid, setIsValid] = useState(null);
 
-  const inverse_matrix = () => {
-    let determinant = math.det(keyMatrix);
-
-    determinant = Math.round(determinant);
-
-    let invDet = string.modInverse(determinant, 26);
-    let invMat = math.inv(keyMatrix);
-
-    invMat = math.multiply(determinant, invMat);
-    invMat = math.round(invMat);
-    invMat = math.multiply(invDet, invMat);
-    invMat = math.mod(invMat, 26);
-    return invMat;
+  const handleSizeChange = (event) => {
+    const newSize = parseInt(event.target.value);
+    setMatrixSize(newSize);
+    setencryptMatrix(new Array(newSize).fill().map(() => new Array(newSize).fill(0)));
+    setIsValid(null);
+  };
+  const handleSizeChangeDec = (event) => {
+    const newSize = parseInt(event.target.value);
+    setdecMatrixSize(newSize);
+    setdecryptMatrix(new Array(newSize).fill().map(() => new Array(newSize).fill(0)));
+    setIsValid(null);
   };
 
-  const matrix_multiply = (matrix1, matrix2) => {
-    let cipherMatrix = new Array(3);
-    for (let i = 0; i < 3; i++) {
-      cipherMatrix[i] = new Array(1).fill([0]);
-    }
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 1; j++) {
-        cipherMatrix[i][j] = 0;
-        for (let x = 0; x < 3; x++) {
-          cipherMatrix[i][j] += matrix1[i][x] * matrix2[x][j];
-        }
-        cipherMatrix[i][j] = cipherMatrix[i][j] % 26;
-      }
-    }
-    return cipherMatrix;
+  const handleMatrixChange = (event, row, col) => {
+    const newValue = parseInt(event.target.value);
+    const newMatrix = [...decryptMatrix];
+    newMatrix[row][col] = newValue;
+    setdecryptMatrix(newMatrix);
+    setIsValid(null);
   };
 
-  const convert_cipher_to_matrix = (function_cipher, pair) => {
-    let cipher_matrix_func = [];
-    let temp_func = [];
-
-    if (function_cipher.length % pair !== 0) {
-      for (let i = 0; i < pair - (function_cipher.length % pair); i++) {
-        function_cipher += "X";
-      }
-    }
-
-    for (let i = 0; i < function_cipher.length; i += pair) {
-      for (let j = 0; j < pair; j++) {
-        temp_func.push([function_cipher.charCodeAt(i + j) - 65]);
-      }
-    }
-
-    for (let i = 0; i < function_cipher.length / pair; i++) {
-      cipher_matrix_func.push(temp_func.slice(pair * i, pair * i + pair));
-    }
-
-    return cipher_matrix_func;
+  const copyMatrix = (event) => {
+    const newMatrix = [...encryptMatrix];
+    setdecryptMatrix(newMatrix);
+    setIsValid(null);
   };
 
-  const decrypt_hill_cipher = (ciphertext_func, key) => {
-    const key_inv = inverse_matrix(key);
-    let plaintext = "";
-    const n = ciphertext_func.length;
-    const pair = convert_cipher_to_matrix(ciphertext_func, key.length);
-
-    for (let mat of pair) {
-      const result = matrix_multiply(key_inv, mat);
-      plaintext += String.fromCharCode((result[0][0] % 26) + 65);
-      plaintext += String.fromCharCode((result[1][0] % 26) + 65);
-      plaintext += String.fromCharCode((result[2][0] % 26) + 65);
+  const checkMatrixValidity = async () => {
+    try {
+      const response = await axios.post('/decrypt/hill/verify/', { decryptMatrix });
+      setIsValid(response.data);
+    } catch (error) {
+      console.error(error);
     }
+  };
 
-    return plaintext;
+  const generateMatrix = () => {
+    axios.post('/encrypt/hill/generateMatrix/', {size: matrixSize})
+      .then(response => {
+        setencryptMatrix(response.data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
   };
 
   const encrypt = () => {
@@ -101,17 +81,14 @@ export default function Caesar() {
         return;
     }
 
-    const pair_size = keyMatrix.length;
-    const cipher_text_matrix = convert_cipher_to_matrix(text.toUpperCase(), pair_size);
-    let ciphertext = "";
-    for (let matrix of cipher_text_matrix) {
-      console.log(matrix);
-      const cipher = matrix_multiply(keyMatrix, matrix);
-      for (let i of cipher) {
-        ciphertext += String.fromCharCode(i[0] + 65);
-      }
+    axios.post('/encrypt/hill/', {plaintext: text, key_matrix: encryptMatrix})
+    .then(response => {
+      setOutput(response.data);
     }
-    setOutput(ciphertext);
+    ).catch(error => {
+      console.error('Error:', error);
+    }
+    );
   };
 
   const decrypt = () => {
@@ -123,8 +100,14 @@ export default function Caesar() {
       });
         return;
     }
-    let decrypted_text = decrypt_hill_cipher(text.toUpperCase(), keyMatrix);
-    setOutput(decrypted_text);
+    axios.post('/decrypt/hill/', {ciphertext: decText, key: decryptMatrix})
+    .then(response => {
+      setDecOutput(response.data);
+    }
+    ).catch(error => {
+      console.error('Error:', error);
+    }
+    );
   };
 
   return (
@@ -132,19 +115,39 @@ export default function Caesar() {
       <div className="container">
         <Card>
           <h1 className="mt-4 h1 d-flex justify-content-center">Hill Cipher</h1>
+          <h2 className="mt-3 h2 d-flex justify-content-center">Encryption</h2>
             <div className="d-flex justify-content-center">
                 <p>Padding Character: X</p>
                 </div>
-          <h3 className="mt-4 flex-column d-flex justify-content-center text-center">
-            Key Matrix is
-          </h3>
-          <div className="flex-column d-flex justify-content-center text-center">
-            <h5>6 24 1</h5>
-            <h5>13 16 10</h5>
-            <h5>20 17 15</h5>
-          </div>
 
-          <div className="p-5 d-flex justify-content-center">
+        <h5 className="flex-column d-flex justify-content-center text-center">Size - 3x3</h5>
+        <div className="mt-4 flex-column d-flex justify-content-center text-center align-items-center">
+
+
+        <Button
+              className="p-3 mx-2 my-4"
+              variant="outlined"
+              onClick={generateMatrix}
+              color="success"
+            >
+              Generate Matrix
+          </Button>
+          <div className="mt-2">
+        <h3 variant="subtitle1">Generated Matrix:</h3>
+        <div>
+          {encryptMatrix.map((row, rowIndex) => (
+            <div key={rowIndex}>
+              {row.map((value, columnIndex) => (
+                <span className="h4" key={columnIndex}>{value}&nbsp;&nbsp;</span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+        </div>
+
+          <div className="p-5 pb-3 d-flex justify-content-center">
             <TextField
               className=""
               onChange={(event) => {
@@ -155,7 +158,7 @@ export default function Caesar() {
               id="fullWidth"
             />
           </div>
-          <div className="pb-5 d-flex justify-content-center">
+          <div className="pb-3 d-flex justify-content-center">
             <Button
               className="p-3 mx-2"
               variant="contained"
@@ -164,20 +167,84 @@ export default function Caesar() {
             >
               Encrypt
             </Button>
-            <Button
-              className="p-3 mx-2"
+          </div>
+
+          <div className="pb-5 flex-column d-flex justify-content-center text-center">
+            <CardHeader title="Output" />
+            <h3 className="mt-2 flex-column d-flex justify-content-center text-center">
+                {output}
+            </h3>
+          </div>
+        {/* Decryption */}
+        <h2 className="mt-3 h2 d-flex justify-content-center">Decryption</h2>
+        <h5 className="flex-column d-flex justify-content-center text-center">Size - 3x3</h5>
+        <div className="mt-4 flex-column d-flex justify-content-center text-center align-items-center">
+        {decryptMatrix.map((row, rowIndex) => (
+        <div key={rowIndex} className="matrix-row mt-4">
+          {row.map((value, colIndex) => (
+            <TextField
+              key={colIndex}
+              type="number"
+              value={value}
+              onChange={(event) => handleMatrixChange(event, rowIndex, colIndex)}
               variant="outlined"
+              size="small"
+              className="matrix-cell mx-4"
+            />
+          ))}
+        </div>
+      ))}
+      <div className="mt-4">
+      {isValid !== null && (
+       <Typography variant="h5" style={{ color: isValid ? 'green' : 'red' }}>
+       {isValid ? 'Matrix is valid for Hill cipher.' : 'Matrix is not valid for Hill cipher.'}
+     </Typography>
+      )}
+      </div>
+        <div className="pb-3 d-flex justify-content-center">
+        <Button
+              className="p-3 mx-2 my-4"
+              variant="outlined"
+              onClick={checkMatrixValidity}
+              color="success"
+            >
+              Verify Matrix
+          </Button>
+          <Button
+              className="p-3 mx-2 my-4"
+              variant="outlined"
+              onClick={copyMatrix}
+              color="success"
+            >
+              Copy Encryption Matrix
+          </Button>
+        </div>
+          </div>
+        <div className="p-5 pt-1 pb-3 d-flex justify-content-center">
+            <TextField
+              className=""
+              onChange={(event) => {
+                setdecText(event.target.value);
+              }}
+              fullWidth
+              label="Enter The Text"
+              id="fullWidth"
+            />
+          </div>
+          <div className="pb-3 d-flex justify-content-center">
+          <Button
+              className="p-3 mx-2"
+              variant="contained"
               onClick={decrypt}
               color="error"
             >
               Decrypt
             </Button>
           </div>
-
           <div className="pb-5 flex-column d-flex justify-content-center text-center">
             <CardHeader title="Output" />
-            <h3 className="mt-4 flex-column d-flex justify-content-center text-center">
-                {output}
+            <h3 className="mt-2 flex-column d-flex justify-content-center text-center">
+                {decOutput}
             </h3>
           </div>
         </Card>
