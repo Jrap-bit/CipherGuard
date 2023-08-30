@@ -1,7 +1,8 @@
 
 # Cryptography Algorithms
-This is a React project showcasing 11 different cryptographic algorithms implemented in JavaScript. The following algorithms are implemented in this project:
+This project is a simulation of various cryptography algorithms I learned in the 6th Semester of B.Tech. To learn the application of the algorithms I created a front-end application based on ReactJs and programmed all the algorithms in Javascript. Later I added a Backend server written in Django to work around the limitations of large numbers that are not supported by Javascript but are supported by Python.
 
+## List of Imlpemented Algorithms
 ### Caesar Cipher
 ### Hill Cipher
 ### Vernam Cipher
