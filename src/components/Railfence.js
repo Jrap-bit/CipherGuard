@@ -1,6 +1,9 @@
 import {Card,Grow,TextField,CardHeader,Input, Button} from "@mui/material";
 import React, {useState} from 'react';
 import swal from 'sweetalert';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://localhost:8000'
 
 export default function Railfence () {
     const [text, setText] = useState("");
@@ -47,13 +50,13 @@ export default function Railfence () {
             return;
         }
 
-        let cipher = "";
-        for (let i = 0; i < key; i++) {
-            for (let j = i; j < text.length; j += parseInt(key)) {
-                cipher += text[j];
-            }
-        }
-        setOutput(cipher);
+        axios.post('/encrypt/railfence/', { input_str: text, key: key })
+            .then(response => {
+                setOutput(response.data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     }
 
     const decrypt = () => {
@@ -105,37 +108,13 @@ export default function Railfence () {
             return;
         }
 
-        let decrypt = "";
-        let range = Math.ceil(text.length / key);
-        let rail = new Array(key)
-        for (let i = 0; i < key; i++) {
-            rail[i] = new Array(range).fill("\n");
-        }
-        for (let i =0;i<rail.length;i++) {
-            for (let j=0;j<rail[0].length;j++) {
-                if (rail[i][j] == undefined){
-                    continue;
-                }
-                else{
-                    rail[i][j] = text[i * rail[0].length + j];
-                }
-            }
-        }
-
-        for (let i=0;i<rail[0].length;i++){
-            for (let j=0;j<rail.length;j++){
-                if (rail[j][i] == "\n"){
-                    continue;
-                }
-                else if(rail[j][i] == undefined){
-                    continue;
-                }
-                else{
-                    decrypt += rail[j][i];
-                }
-            }
-        }
-        setOutput(decrypt);
+        axios.post('/decrypt/railfence/', { input_str: text, key: key })
+            .then(response => {
+                setOutput(response.data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
 
     }
 
