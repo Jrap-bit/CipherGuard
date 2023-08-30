@@ -14,7 +14,8 @@ This project is a simulation of various cryptography algorithms I learned in the
 ### Diffie-Hellman Key Exchange
 ### ElGamal
 ### Rail Fence Cipher
-### Algorithms Description
+
+## Algorithms Description
 
 ## Caesar Cipher
 Caesar Cipher is a simple substitution cipher where each letter of the plaintext is replaced by a letter that is a fixed number of positions down the alphabet.
