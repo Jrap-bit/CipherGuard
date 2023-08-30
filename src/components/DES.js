@@ -2,12 +2,14 @@ import {Card,Grow,TextField,CardHeader,Input, Button} from "@mui/material";
 import React, {useState} from 'react';
 var CryptoJS = require("crypto-js");
 import swal from 'sweetalert';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://localhost:8000'
 
 
 export default function Caesar () {
     const [text, setText] = useState("");
     const [key, setKey] = useState("");
-    const [outputList, setOutputList] = useState([]);
     const [output, setOutput] = useState("");
 
     const encrypt = () => {
@@ -30,8 +32,21 @@ export default function Caesar () {
             return;
         }
 
-        const ciphertext = CryptoJS.DES.encrypt(text, key).toString();
-        setOutput(ciphertext);
+        axios.post("/encrypt/DES/", { input_str: text, key: key })
+        .then(response => {
+            setOutput(response.data);
+            if (response.data == ""){
+                swal({
+                    title: "Invalid Key",
+                    text: "Enter 8, 16 or 24 characters as key",
+                    icon: "error",
+                  });
+                return;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
 
     const decrypt = () => {
@@ -53,15 +68,27 @@ export default function Caesar () {
               });
             return;
         }
-        const decryptedMessage = CryptoJS.DES.decrypt(text, key).toString(CryptoJS.enc.Utf8);
-        setOutput(decryptedMessage);
-        if (decryptedMessage == "") {
+        axios.post("/decrypt/DES/", { input_str: text, key: key })
+        .then(response => {
+            setOutput(response.data);
+            if (response.data == ""){
+                swal({
+                    title: "Invalid Key",
+                    text: "Enter 8, 16 or 24 characters as key",
+                    icon: "error",
+                  });
+                return;
+            }
+        }
+        )
+        .catch(error => {
             swal({
-                title: "Error",
-                text: "Wrong Key",
-                icon: "warning",
+                title: "Invalid Key",
+                text: "Enter the Correct Key",
+                icon: "error",
               });
         }
+        );
     }
 
     return (
