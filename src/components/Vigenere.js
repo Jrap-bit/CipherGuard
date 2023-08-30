@@ -1,29 +1,14 @@
 import {Card,Grow,TextField,CardHeader,Input, Button} from "@mui/material";
 import React, {useState} from 'react';
 import swal from 'sweetalert';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://localhost:8000'
 
 export default function Vigenere () {
     const [text, setText] = useState("");
     const [key, setKey] = useState("");
     const [output, setOutput] = useState("");
-
-    const modulus = function (n, m) {
-        return ((n % m) + m) % m;
-    }
-
-    const key_generator = (text, key) => {
-        let key_ = "";
-        if (key.length < text.length) {
-            for (let i = 0; i < text.length; i++) {
-                key_ += key[i % key.length].toUpperCase();
-            }
-        }
-        else{
-            key_ = key.toUpperCase();
-        }
-
-        return key_;
-    }
 
     const encrypt = () => {
         if (text.length == 0) {
@@ -42,20 +27,13 @@ export default function Vigenere () {
               });
             return;
         }
-        let cipher = "";
-        let key_ = key_generator(text, key);
-        for (let i = 0; i < text.length; i++) {
-            if (text[i] === " "){
-                cipher += " ";
-            }
-            else{
-            let x = text.toUpperCase().charCodeAt(i);
-            let y = key_.charCodeAt(i);
-            let char = (parseInt(x) - 65) + (parseInt(y) - 65);
-            cipher += String.fromCharCode((modulus(parseInt(char),26)) + 65);
-            }
-        }
-        setOutput(cipher);
+        axios.post('/encrypt/vigenere/', { input_str: text, key: key })
+        .then(response => {
+            setOutput(response.data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
 
     const decrypt = () => {
@@ -76,20 +54,13 @@ export default function Vigenere () {
             return;
         }
 
-        let decrypt_text = "";
-        let key_ = key_generator(text, key);
-        for (let i = 0; i < text.length; i++) {
-            if (text[i] === " "){
-                decrypt_text += " ";
-            }
-            else{
-            let x = text.toUpperCase().charCodeAt(i);
-            let y = key_.charCodeAt(i);
-            let char = (parseInt(x) - 65) - (parseInt(y) - 65);
-            decrypt_text += String.fromCharCode((modulus(parseInt(char),26)) + 65);
-            }
-        }
-        setOutput(decrypt_text);
+        axios.post('/decrypt/vigenere/', { input_str: text, key: key })
+        .then(response => {
+            setOutput(response.data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
 
     return (
