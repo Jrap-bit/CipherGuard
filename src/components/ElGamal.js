@@ -10,8 +10,6 @@ import {
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import React, { useState } from "react";
-let string = require("./utils/string");
-let primeFunc = require("./utils/prime");
 import swal from "sweetalert";
 import axios from "axios";
 
