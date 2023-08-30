@@ -2,6 +2,10 @@ import {Card,Grow,TextField,CardHeader,Input, Button} from "@mui/material";
 import React, {useState} from 'react';
 var CryptoJS = require("crypto-js");
 import swal from 'sweetalert';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://localhost:8000'
+
 
 
 export default function Caesar () {
@@ -30,8 +34,26 @@ export default function Caesar () {
             return;
         }
 
-        const ciphertext = CryptoJS.AES.encrypt(text, key).toString();
-        setOutput(ciphertext);
+        axios.post("/encrypt/AES/", { input_str: text, key: key })
+        .then(response => {
+            setOutput(response.data);
+            if (response.data == ""){
+                swal({
+                    title: "Invalid Key",
+                    text: "Enter 16, 24 or 32 characters as key",
+                    icon: "error",
+                  });
+                return;
+            }
+        })
+        .catch(error => {
+            swal({
+                title: "Invalid Key",
+                text: "Enter 16, 24 or 32 characters as key",
+                icon: "error",
+              });
+            return;
+        });
     }
 
     const decrypt = () => {
@@ -53,16 +75,26 @@ export default function Caesar () {
               });
             return;
         }
-        const decryptedMessage = CryptoJS.AES.decrypt(text, key).toString(CryptoJS.enc.Utf8);
-        setOutput(decryptedMessage);
-    
-        if (decryptedMessage == "") {
+        axios.post('/decrypt/AES/', {input_str: text, key: key})
+        .then(response => {
+            setOutput(response.data);
+            if (response.data == ""){
+                swal({
+                    title: "Invalid Key",
+                    text: "Enter 16, 24 or 32 characters as key",
+                    icon: "error",
+                  });
+                return;
+            }
+        })
+        .catch(error => {
             swal({
-                title: "Error",
-                text: "Wrong Key",
-                icon: "warning",
+                title: "Invalid Key or Text",
+                text: "Enter 16, 24 or 32 characters as key",
+                icon: "error",
               });
-        }
+            return;
+        })
     }
 
     return (
